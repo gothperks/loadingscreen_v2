@@ -128,12 +128,12 @@
         </div>
 
         <div class="tips-container">
-            <div id="tips-msg">Изначально server был и вправду локальным</div>
+            <div id="tips-msg">Изначально сервер был и вправду локальным</div>
         </div>
     </div>
 
     <div class="footer-navigation">
-        Discord: https://discord.gg
+        Localka-Box Discord: discord.gg/Pukt9syQXW
     </div>
 
     <script>
@@ -142,7 +142,9 @@
             "Изначально сервер был и вправду локальным",
             "Все началось из-за группы",
             "Иркутский холодильник фурри",
-            "Наш сервер находится на VDC хосте"
+            "Наш сервер находится на VDC хосте",
+            "Незнание правил не освобождает от ответственности",
+            "Приятной игры !"
         ];
 
         let currentTipIndex = 0;
@@ -153,7 +155,6 @@
 
             setTimeout(() => {
                 let nextIndex;
-                // Цикл гарантирует, что следующий совет РАНДОМНЫЙ и не совпадает с текущим
                 do {
                     nextIndex = Math.floor(Math.random() * tips.length);
                 } while (nextIndex === currentTipIndex && tips.length > 1);
@@ -164,11 +165,11 @@
             }, 600); 
         }
 
-        // Запускаем рандомную смену советов каждые 10 секунд (10000 миллисекунд)
+        // Запуск смены советов каждые 10 секунд
         setInterval(changeTip, 10000);
 
 
-        // --- СКРИПТ АНИМИРОВАННОГО ДОЖДЯ С ВАШЕЙ СКОРОСТЬЮ И ФИКСОМ GMOD ---
+        // --- СКРИПТ АНИМИРОВАННОГО ДОЖДЯ С ФИКСОМ СКОРОСТИ GMOD ---
         const canvas = document.getElementById('bg-particles');
         const ctx = canvas.getContext('2d');
 
@@ -188,7 +189,6 @@
                 x: Math.random() * width,
                 y: Math.random() * height,
                 length: Math.random() * 8 + 6,  
-                // Вернул бывшую повышенную скорость капель под лаги оверлея
                 speed: Math.random() * 2.8 + 1.8 
             });
         }
