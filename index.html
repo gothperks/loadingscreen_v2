@@ -89,7 +89,6 @@
             padding-top: 15px;
         }
 
-        /* Плавное появление и затухание через CSS opacity */
         #tips-msg {
             font-size: 14px; 
             letter-spacing: 0.5px;
@@ -128,9 +127,8 @@
             <div class="text-city">City</div>
         </div>
 
-        <!-- Контейнер для сменяющихся фактов -->
         <div class="tips-container">
-            <div id="tips-msg">Изначально сервер был и вправду локальным</div>
+            <div id="tips-msg">Изначально server был и вправду локальным</div>
         </div>
     </div>
 
@@ -151,24 +149,26 @@
         const tipsElement = document.getElementById('tips-msg');
 
         function changeTip() {
-            // Запускаем эффект затухания (исчезновение)
             tipsElement.style.opacity = 0;
 
             setTimeout(() => {
-                // Выбираем следующий совет по кругу
-                currentTipIndex = (currentTipIndex + 1) % tips.length;
+                let nextIndex;
+                // Цикл гарантирует, что следующий совет РАНДОМНЫЙ и не совпадает с текущим
+                do {
+                    nextIndex = Math.floor(Math.random() * tips.length);
+                } while (nextIndex === currentTipIndex && tips.length > 1);
+
+                currentTipIndex = nextIndex;
                 tipsElement.innerText = tips[currentTipIndex];
-                
-                // Включаем появление обратно
                 tipsElement.style.opacity = 1;
-            }, 600); // Время совпадает с transition в CSS (0.6s)
+            }, 600); 
         }
 
-        // Запускаем автоматическую смену каждые 5 секунд (5000 миллисекунд)
-        setInterval(changeTip, 5000);
+        // Запускаем рандомную смену советов каждые 10 секунд (10000 миллисекунд)
+        setInterval(changeTip, 10000);
 
 
-        // --- СКРИПТ АНИМИРОВАННОГО ДОЖДЯ ---
+        // --- СКРИПТ АНИМИРОВАННОГО ДОЖДЯ С ВАШЕЙ СКОРОСТЬЮ И ФИКСОМ GMOD ---
         const canvas = document.getElementById('bg-particles');
         const ctx = canvas.getContext('2d');
 
@@ -188,7 +188,8 @@
                 x: Math.random() * width,
                 y: Math.random() * height,
                 length: Math.random() * 8 + 6,  
-                speed: Math.random() * 0.7 + 0.4 
+                // Вернул бывшую повышенную скорость капель под лаги оверлея
+                speed: Math.random() * 2.8 + 1.8 
             });
         }
 
@@ -221,7 +222,6 @@
         }
         requestAnimationFrame(drawParticles);
 
-        // Пустые заглушки для Garry's Mod, чтобы в консоли не сыпало ошибками
         function SetFilesNeeded() {}
         function DownloadingFile() {}
         function SetStatusChanged() {}
