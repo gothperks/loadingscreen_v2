@@ -81,19 +81,23 @@
             text-shadow: 0px 5px 14px rgba(0, 0, 0, 0.75), 0px 0px 22px rgba(255, 255, 255, 0.05);
         }
 
-        /* БЛОК СОВЕТОВ С ЛИНЕЙКОЙ */
+        /* БЛОК СОВЕТОВ С ЛИНЕЙКОЙ (СДВИНУТ НИЖЕ) */
         .tips-container {
             width: 100%;
             text-align: center;
             border-top: 1px solid rgba(255, 255, 255, 0.05);
-            padding-top: 15px;
+            padding-top: 25px; /* Увеличили отступ сверху */
+            margin-top: 20px;   /* Опустили весь блок еще ниже */
         }
 
+        /* ФРАЗЫ СТАЛИ БОЛЬШЕ, ЖИРНЕЕ И ЧИСТО БЕЛОГО ЦВЕТА */
         #tips-msg {
-            font-size: 14px; 
+            font-size: 18px; /* Увеличено с 14px */
+            font-weight: 500; /* Сделано плотнее */
             letter-spacing: 0.5px;
-            color: rgba(255, 255, 255, 0.5);
-            min-height: 20px;
+            color: #ffffff; /* Сменили серый на чистый белый, как логотип */
+            text-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5); /* Добавили тень */
+            min-height: 25px;
             opacity: 1;
             transition: opacity 0.6s ease-in-out;
         }
@@ -128,7 +132,7 @@
         </div>
 
         <div class="tips-container">
-            <div id="tips-msg">Изначально сервер был и вправду локальным</div>
+            <div id="tips-msg">Загрузка интерфейса...</div>
         </div>
     </div>
 
@@ -137,7 +141,7 @@
     </div>
 
     <script>
-        // --- МАССИВ С ВАШИМИ СОВЕТАМИ И ФАКТАМИ ---
+        // --- МАССИВ С ВАШИМИ СОВЕТАМИ ---
         const tips = [
             "Изначально сервер был и вправду локальным",
             "Все началось из-за группы",
@@ -147,25 +151,46 @@
             "Приятной игры !"
         ];
 
+        let shuffledTips = [];
         let currentTipIndex = 0;
+
+        // Функция для честного перемешивания массива (Алгоритм Фишера-Йетса)
+        function shuffleTips() {
+            shuffledTips = [...tips];
+            for (let i = shuffledTips.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffledTips[i], shuffledTips[j]] = [shuffledTips[j], shuffledTips[i]];
+            }
+            // Проверка: чтобы первая фраза нового цикла не совпадала с последней фразой старого цикла
+            if (shuffledTips[0] === tipsElement.innerText && shuffledTips.length > 1) {
+                shuffledTips.push(shuffledTips.shift());
+            }
+        }
+
         const tipsElement = document.getElementById('tips-msg');
 
         function changeTip() {
             tipsElement.style.opacity = 0;
 
             setTimeout(() => {
-                let nextIndex;
-                do {
-                    nextIndex = Math.floor(Math.random() * tips.length);
-                } while (nextIndex === currentTipIndex && tips.length > 1);
+                // Если перемешанный список кончился — перемешиваем заново
+                if (currentTipIndex >= shuffledTips.length) {
+                    shuffleTips();
+                    currentTipIndex = 0;
+                }
 
-                currentTipIndex = nextIndex;
-                tipsElement.innerText = tips[currentTipIndex];
+                tipsElement.innerText = shuffledTips[currentTipIndex];
+                currentTipIndex++;
                 tipsElement.style.opacity = 1;
             }, 600); 
         }
 
-        // Запуск смены советов каждые 10 секунд
+        // Стартовая инициализация при загрузке страницы
+        shuffleTips();
+        tipsElement.innerText = shuffledTips[currentTipIndex];
+        currentTipIndex++;
+
+        // Запуск смены советов строго каждые 10 секунд
         setInterval(changeTip, 10000);
 
 
