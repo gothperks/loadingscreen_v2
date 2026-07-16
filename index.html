@@ -121,11 +121,10 @@
             text-overflow: ellipsis;
         }
 
-        /* НАДПИСЬ ПЕРЕНЕСЕНА В ЛЕВЫЙ НИЖНИЙ УГОЛ */
         .footer-navigation {
             position: absolute;
             bottom: 40px;
-            left: 50px; /* Было right: 50px */
+            left: 50px; 
             z-index: 10;
             font-size: 15px; 
             font-weight: 500; 
@@ -137,7 +136,6 @@
 </head>
 <body>
 
-    <!-- Скрытый аудиоплеер для фоновой музыки -->
     <audio id="bg-audio" src="bg-music.mp3" loop></audio>
 
     <canvas id="bg-particles"></canvas>
@@ -165,9 +163,8 @@
         </div>
     </div>
 
-    <!-- Новое положение ссылки Discord -->
     <div class="footer-navigation">
-        Localka-Box Discord: discord.gg/Pukt9syQXW
+        Discord: https://discord.gg
     </div>
 
     <script>
@@ -198,11 +195,20 @@
                 x: Math.random() * width,
                 y: Math.random() * height,
                 length: Math.random() * 8 + 6,  
-                speed: Math.random() * 0.7 + 0.4 
+                // ФИКС: Увеличили базовую скорость капель под лаги Chromium в оверлее GMod
+                speed: Math.random() * 2.8 + 1.8 
             });
         }
 
-        function drawParticles() {
+        // Фикс таймингов для стабильного FPS внутри игры
+        let lastTime = performance.now();
+
+        function drawParticles(currentTime) {
+            // Рассчитываем множитель дельты времени, чтобы скорость не зависела от лагов загрузки
+            let deltaTime = (currentTime - lastTime) / 16.66; 
+            if (deltaTime > 4) deltaTime = 4; // Защита от телепортации капель при жестких фризах
+            lastTime = currentTime;
+
             ctx.clearRect(0, 0, width, height);
             ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)'; 
             ctx.lineWidth = 1;
@@ -214,7 +220,8 @@
                 ctx.lineTo(p.x, p.y + p.length); 
                 ctx.stroke();
 
-                p.y += p.speed;
+                // Умножаем скорость на дельту, выравнивая плавность
+                p.y += p.speed * deltaTime;
 
                 if (p.y > height) {
                     p.y = -15;
@@ -223,7 +230,7 @@
             }
             requestAnimationFrame(drawParticles);
         }
-        drawParticles();
+        requestAnimationFrame(drawParticles);
 
         function SetFilesNeeded(needed) {
             window.totalFiles = needed;
