@@ -121,14 +121,14 @@
             text-overflow: ellipsis;
         }
 
-        /* НАДПИСЬ В УГЛУ СТАЛА ЧУТЬ БОЛЬШЕ И ЗАМЕТНЕЕ */
+        /* НАДПИСЬ ПЕРЕНЕСЕНА В ЛЕВЫЙ НИЖНИЙ УГОЛ */
         .footer-navigation {
             position: absolute;
             bottom: 40px;
-            right: 50px;
+            left: 50px; /* Было right: 50px */
             z-index: 10;
-            font-size: 15px; /* Увеличено с 12px */
-            font-weight: 500; /* Сделано чуть плотнее */
+            font-size: 15px; 
+            font-weight: 500; 
             letter-spacing: 0.5px;
             color: rgba(255, 255, 255, 0.45);
             text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.5);
@@ -165,9 +165,9 @@
         </div>
     </div>
 
-    <!-- Обновленная ссылка в углу -->
+    <!-- Новое положение ссылки Discord -->
     <div class="footer-navigation">
-        Localka-Box Discord: discord.gg/Pukt9syQXW
+        Localka-Box Discord: https://discord.gg
     </div>
 
     <script>
