@@ -81,28 +81,22 @@
             text-shadow: 0px 5px 14px rgba(0, 0, 0, 0.75), 0px 0px 22px rgba(255, 255, 255, 0.05);
         }
 
-        .status-info {
+        /* БЛОК СОВЕТОВ С ЛИНЕЙКОЙ */
+        .tips-container {
             width: 100%;
-            display: flex;
-            justify-content: space-between;
-            font-size: 12px; 
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            color: rgba(255, 255, 255, 0.45);
+            text-align: center;
             border-top: 1px solid rgba(255, 255, 255, 0.05);
-            padding-top: 12px;
+            padding-top: 15px;
         }
 
-        #status-msg {
-            max-width: 80%;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        #status-pct {
-            font-weight: 600;
-            color: rgba(255, 255, 255, 0.7);
+        /* Плавное появление и затухание через CSS opacity */
+        #tips-msg {
+            font-size: 14px; 
+            letter-spacing: 0.5px;
+            color: rgba(255, 255, 255, 0.5);
+            min-height: 20px;
+            opacity: 1;
+            transition: opacity 0.6s ease-in-out;
         }
 
         .footer-navigation {
@@ -134,63 +128,45 @@
             <div class="text-city">City</div>
         </div>
 
-        <div class="status-info">
-            <div id="status-msg">Инициализация...</div>
-            <div id="status-pct">0%</div>
+        <!-- Контейнер для сменяющихся фактов -->
+        <div class="tips-container">
+            <div id="tips-msg">Изначально сервер был и вправду локальным</div>
         </div>
     </div>
 
     <div class="footer-navigation">
-        Localka-Box Discord: discord.gg/Pukt9syQXW
+        Discord: https://discord.gg
     </div>
 
     <script>
-        // --- ПОЛНЫЙ СЛОВАРЬ ПЕРЕВОДА ДЛЯ GARRY'S MOD ---
-        const translations = {
-            "connecting to server": "Подключение к серверу",
-            "retrieving server info": "Получение информации о сервере",
-            "loading resources": "Загрузка серверных ресурсов",
-            "sending client info": "Отправка данных клиента",
-            "starting lua": "Запуск скриптов LUA",
-            "loading lua": "Загрузка модулей LUA",
-            "workshop complete": "Загрузка контента из мастерской завершена",
-            "finished": "Загрузка завершена. Вход...",
-            "mount addons": "Монтирование серверных аддонов",
-            "getting addon info": "Получение информации об аддонах",
-            "loading cache content": "Загрузка кэшированного контента",
-            "fetching subscriptions": "Проверка подписок Steam Workshop",
-            "checking addons": "Проверка локальных аддонов",
-            "downloading security components": "Загрузка компонентов безопасности",
-            "initializing": "Инициализация интерфейса"
-        };
+        // --- МАССИВ С ВАШИМИ СОВЕТАМИ И ФАКТАМИ ---
+        const tips = [
+            "Изначально сервер был и вправду локальным",
+            "Все началось из-за группы",
+            "Иркутский холодильник фурри",
+            "Наш сервер находится на VDC хосте"
+        ];
 
-        const stageProgress = {
-            "connecting to server": 5,
-            "retrieving server info": 15,
-            "getting addon info": 25,
-            "loading cache content": 40,
-            "loading resources": 55,
-            "loading lua": 75,
-            "starting lua": 90,
-            "sending client info": 97,
-            "finished": 100
-        };
+        let currentTipIndex = 0;
+        const tipsElement = document.getElementById('tips-msg');
 
-        function translateStatus(status) {
-            let lowStatus = status.toLowerCase().trim();
-            if (lowStatus.endsWith("...")) {
-                lowStatus = lowStatus.slice(0, -3).trim();
-            }
-            
-            if (window.totalFiles === 0 && stageProgress[lowStatus]) {
-                updatePercentText(stageProgress[lowStatus]);
-            }
+        function changeTip() {
+            // Запускаем эффект затухания (исчезновение)
+            tipsElement.style.opacity = 0;
 
-            if (translations[lowStatus]) {
-                return translations[lowStatus] + "...";
-            }
-            return status;
+            setTimeout(() => {
+                // Выбираем следующий совет по кругу
+                currentTipIndex = (currentTipIndex + 1) % tips.length;
+                tipsElement.innerText = tips[currentTipIndex];
+                
+                // Включаем появление обратно
+                tipsElement.style.opacity = 1;
+            }, 600); // Время совпадает с transition в CSS (0.6s)
         }
+
+        // Запускаем автоматическую смену каждые 5 секунд (5000 миллисекунд)
+        setInterval(changeTip, 5000);
+
 
         // --- СКРИПТ АНИМИРОВАННОГО ДОЖДЯ ---
         const canvas = document.getElementById('bg-particles');
@@ -212,7 +188,7 @@
                 x: Math.random() * width,
                 y: Math.random() * height,
                 length: Math.random() * 8 + 6,  
-                speed: Math.random() * 2.8 + 1.8 
+                speed: Math.random() * 0.7 + 0.4 
             });
         }
 
@@ -245,48 +221,10 @@
         }
         requestAnimationFrame(drawParticles);
 
-        // --- ВЗАИМОДЕЙСТВИЕ С ДВИЖКОМ GARRY'S MOD ---
-        window.totalFiles = 0;
-        window.filesLeft = 0;
-
-        function SetFilesNeeded(needed) {
-            if (needed && needed > 0) {
-                window.totalFiles = needed;
-                window.filesLeft = needed;
-            }
-            calculateProgress();
-        }
-
-        function DownloadingFile(fileName) {
-            let cleanName = fileName.replace(/^.+\//, '');
-            document.getElementById('status-msg').innerText = `Скачивание: ${cleanName}`;
-            
-            if (window.filesLeft && window.filesLeft > 0) {
-                window.filesLeft--;
-            } else if (window.totalFiles === 0) {
-                let currentPct = parseInt(document.getElementById('status-pct').innerText) || 40;
-                if (currentPct < 88) updatePercentText(currentPct + 1);
-            }
-            calculateProgress();
-        }
-
-        function SetStatusChanged(status) {
-            document.getElementById('status-msg').innerText = translateStatus(status);
-        }
-
-        function updatePercentText(pct) {
-            document.getElementById('status-pct').innerText = pct + '%';
-        }
-
-        function calculateProgress() {
-            if (!window.totalFiles || window.totalFiles === 0) return;
-            
-            let percent = Math.floor(((window.totalFiles - window.filesLeft) / window.totalFiles) * 100);
-            if (percent > 100) percent = 100;
-            if (percent < 0) percent = 0;
-
-            updatePercentText(percent);
-        }
+        // Пустые заглушки для Garry's Mod, чтобы в консоли не сыпало ошибками
+        function SetFilesNeeded() {}
+        function DownloadingFile() {}
+        function SetStatusChanged() {}
     </script>
 </body>
 </html>
