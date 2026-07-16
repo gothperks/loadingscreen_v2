@@ -52,7 +52,7 @@
         .brand-holder {
             display: flex;
             align-items: center;
-            margin-bottom: 30px; 
+            margin-bottom: 25px;
         }
 
         .logo-box img {
@@ -81,37 +81,16 @@
             text-shadow: 0px 5px 14px rgba(0, 0, 0, 0.75), 0px 0px 22px rgba(255, 255, 255, 0.05);
         }
 
-        .loading-wrapper {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .progress-line-bg {
-            width: 100%;
-            height: 2px; 
-            background-color: rgba(255, 255, 255, 0.1); 
-            overflow: hidden;
-            position: relative;
-            box-shadow: 0px 1px 4px rgba(0, 0, 0, 0.5);
-        }
-
-        .progress-line-fill {
-            height: 100%;
-            width: 0%; 
-            background-color: #ffffff; 
-            box-shadow: 0 0 8px rgba(255, 255, 255, 0.6); 
-            transition: width 0.3s cubic-bezier(0.22, 1, 0.36, 1); 
-        }
-
         .status-info {
+            width: 100%;
             display: flex;
             justify-content: space-between;
             font-size: 12px; 
             letter-spacing: 1px;
             text-transform: uppercase;
-            color: rgba(255, 255, 255, 0.4);
+            color: rgba(255, 255, 255, 0.45);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding-top: 12px;
         }
 
         #status-msg {
@@ -119,6 +98,11 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+        }
+
+        #status-pct {
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.7);
         }
 
         .footer-navigation {
@@ -136,9 +120,6 @@
 </head>
 <body>
 
-    <!-- Скрытый аудиоплеер для фоновой музыки -->
-    <audio id="bg-audio" src="bg-music.mp3" loop></audio>
-
     <canvas id="bg-particles"></canvas>
     <div class="vignette"></div>
 
@@ -153,52 +134,58 @@
             <div class="text-city">City</div>
         </div>
 
-        <div class="loading-wrapper">
-            <div class="progress-line-bg">
-                <div class="progress-line-fill" id="gmod-bar"></div>
-            </div>
-            <div class="status-info">
-                <div id="status-msg">Инициализация...</div>
-                <div id="status-pct">0%</div>
-            </div>
+        <div class="status-info">
+            <div id="status-msg">Инициализация...</div>
+            <div id="status-pct">0%</div>
         </div>
     </div>
 
     <div class="footer-navigation">
-        Localka-Box Discord: discord.gg/Pukt9syQXW
+        Discord: https://discord.gg
     </div>
 
     <script>
-        window.addEventListener('DOMContentLoaded', () => {
-            const audio = document.getElementById('bg-audio');
-            audio.volume = 0.3; 
-            audio.play().catch(error => {
-                console.log("Автовоспроизведение заблокировано.");
-            });
-        });
-
-        // --- ЛОГИКА ПЕРЕВОДА СИСТЕМНЫХ СТАТУСОВ GMOD ---
+        // --- ПОЛНЫЙ СЛОВАРЬ ПЕРЕВОДА ДЛЯ GARRY'S MOD ---
         const translations = {
             "connecting to server": "Подключение к серверу",
             "retrieving server info": "Получение информации о сервере",
-            "loading resources": "Загрузка ресурсов",
+            "loading resources": "Загрузка серверных ресурсов",
             "sending client info": "Отправка данных клиента",
             "starting lua": "Запуск скриптов LUA",
             "loading lua": "Загрузка модулей LUA",
-            "workshop complete": "Загрузка контента Workshop завершена",
-            "finished": "Готово",
-            "mount addons": "Монтирование аддонов",
-            "getting addon info": "Получение информации об аддонах"
+            "workshop complete": "Загрузка контента из мастерской завершена",
+            "finished": "Загрузка завершена. Вход...",
+            "mount addons": "Монтирование серверных аддонов",
+            "getting addon info": "Получение информации об аддонах",
+            "loading cache content": "Загрузка кэшированного контента",
+            "fetching subscriptions": "Проверка подписок Steam Workshop",
+            "checking addons": "Проверка локальных аддонов",
+            "downloading security components": "Загрузка компонентов безопасности",
+            "initializing": "Инициализация интерфейса"
+        };
+
+        const stageProgress = {
+            "connecting to server": 5,
+            "retrieving server info": 15,
+            "getting addon info": 25,
+            "loading cache content": 40,
+            "loading resources": 55,
+            "loading lua": 75,
+            "starting lua": 90,
+            "sending client info": 97,
+            "finished": 100
         };
 
         function translateStatus(status) {
             let lowStatus = status.toLowerCase().trim();
-            // Убираем точки на конце, если они есть
             if (lowStatus.endsWith("...")) {
                 lowStatus = lowStatus.slice(0, -3).trim();
             }
             
-            // Если есть перевод в словаре, возвращаем его
+            if (window.totalFiles === 0 && stageProgress[lowStatus]) {
+                updatePercentText(stageProgress[lowStatus]);
+            }
+
             if (translations[lowStatus]) {
                 return translations[lowStatus] + "...";
             }
@@ -258,46 +245,47 @@
         }
         requestAnimationFrame(drawParticles);
 
-        // --- ВЗАИМОДЕЙСТВИЕ С GARRY'S MOD ---
+        // --- ВЗАИМОДЕЙСТВИЕ С ДВИЖКОМ GARRY'S MOD ---
         window.totalFiles = 0;
         window.filesLeft = 0;
 
         function SetFilesNeeded(needed) {
-            window.totalFiles = needed;
-            window.filesLeft = needed;
-            updateProgress();
+            if (needed && needed > 0) {
+                window.totalFiles = needed;
+                window.filesLeft = needed;
+            }
+            calculateProgress();
         }
 
         function DownloadingFile(fileName) {
-            const audio = document.getElementById('bg-audio');
-            if (audio && audio.paused) { audio.play(); }
-
             let cleanName = fileName.replace(/^.+\//, '');
             document.getElementById('status-msg').innerText = `Скачивание: ${cleanName}`;
             
             if (window.filesLeft && window.filesLeft > 0) {
                 window.filesLeft--;
+            } else if (window.totalFiles === 0) {
+                let currentPct = parseInt(document.getElementById('status-pct').innerText) || 40;
+                if (currentPct < 88) updatePercentText(currentPct + 1);
             }
-            updateProgress();
+            calculateProgress();
         }
 
         function SetStatusChanged(status) {
             document.getElementById('status-msg').innerText = translateStatus(status);
-            
-            const audio = document.getElementById('bg-audio');
-            if (audio && audio.paused) { audio.play(); }
         }
 
-        // Вынесли обновление линии в отдельную чистую функцию
-        function updateProgress() {
+        function updatePercentText(pct) {
+            document.getElementById('status-pct').innerText = pct + '%';
+        }
+
+        function calculateProgress() {
             if (!window.totalFiles || window.totalFiles === 0) return;
             
             let percent = Math.floor(((window.totalFiles - window.filesLeft) / window.totalFiles) * 100);
             if (percent > 100) percent = 100;
             if (percent < 0) percent = 0;
 
-            document.getElementById('gmod-bar').style.width = percent + '%';
-            document.getElementById('status-pct').innerText = percent + '%';
+            updatePercentText(percent);
         }
     </script>
 </body>
